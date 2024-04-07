@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Secure Base $ETF Bridge</title>
+
+  <style type="text/css">
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png" style="width: 200px;">
+  <img src="https://images.ctfassets.net/c5bd0wqjc7v0/5kbm9b5W1gYOdCZpkb8nAV/3bb74d01953bef05f4cf258adc5ee887/Base_Blog_header.png" style="width: 400px;">
+  <h1>Secure L1 Ethereum Mainnet $ETF → Base Main Net $ETF Bridge</h1>
+
+  <button id="connectWallet">Connect Wallet</button>
+  <div id="connectedAs"></div>
+
+  <h3><span>WARNING:</span> Follow these directions as closely as possible, or you could accidentally burn your $ETF</h3>
+
+  <section>
+    <h3>Step 1. Connect wallet (above)</h3>
+  </section>
+
+  <section>
+    <h3>Step 2 Make sure you are connected to <span style="text-decoration: underline;">Ethereum L1 Main Net</span></h3>
+  </section>
+
+  <section>
+    <h3>Step 3 Approve Base L1StandardBridge Contract <a href="https://etherscan.io/address/0x3154Cf16ccdb4C6d922629664174b904d80F2C35" target="_blank" rel="nofollow">0x3154Cf16ccdb4C6d922629664174b904d80F2C35</a> for the full $ETF bridge amount. Please reference the official BASE contract addresses: <a href="https://docs.base.org/docs/base-contracts" rel="nofollow" target="_blank">https://docs.base.org/docs/base-contracts</a></h3>
+    <div>a) <input id="bridgeContract" placeholder="L1StandardBridge Contract Address" style="width:250px"></div>
+    <div>b) <input id="approvalAmount" placeholder="Approval Amount in WEI" type="number" style="width:250px"></div>
+    <div><em>Make sure your approval amount is denominated in wei. Example: If you want to approve 10 shares of $ETF, input <strong>10000000000000000000</strong> into box 3b. If you want to approve your entire balance, input <strong>115792089237316195423570985008687907853269984665640564039457584007913129639935</strong> into box 3b.</em></div>
+    <div><button>Approve $ETH</button></div>
+
+  </section>
+
+  <section>
+    <h3>Step 4:</h3>
+    <h4>Bridge $ETH using the Base L1StandardBridge Contract</h4>
+    <div><input placeholder="address _localToken"></div>
+    <div><input placeholder="address _remoteToken"></div>
+    <div><input placeholder="address _to">(Your address on Base)</div>
+    <div><input placeholder="uint256 _amount">(amount to send in wei)</div>
+    <div><input placeholder="uint256 _minGasLimit">(Gas to use to complete the transfer on the receiving side.)</div>
+    <div><input placeholder="bytes _extraData">(extra data)</div>
+    <em>If you are unsure what to put in the Step 4 inputs, please reference step 2 of the official Optimism Standard Bridge Docs: <a href="https://docs.optimism.io/builders/app-developers/bridging/standard-bridge" target="_blank" rel="nofollow">https://docs.optimism.io/builders/app-developers/bridging/standard-bridge</a></em>
+    <div><button>Bridge $ETH</button></div>
+  </section>
+
+</body>
+
+<script type="module">
+  import {provider} from './eth.js'
+  import {$} from './$.js'
+
+
+  provider.setContractInfo({
+    ETF: {
+      addr: {
+        local: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+        sepolia: '0xcCeD8D66694FFCbAB3bBab982c302e08851022c4'
+      },
+      abi: [
+        'function approve(address spender, uint256 amount) external',
+      ],
+    },
+  })
+
+  provider.onConnect(addr => {
+    $.id('connectedAs').innerHTML = addr
+  })
+
+  $.id('connectWallet').onclick = async () => {
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }, [])
+      const address = await provider.isConnected()
+      provider.connect()
+
+    } catch (error) {
+      ctx.setState({ error, loading: false })
+      console.error(error)
+    }
+
+  }
+</script>
+</html>
