@@ -7,6 +7,31 @@
   <style type="text/css">
     button {
       cursor: pointer;
+      font-size: 1.5em;
+    }
+
+    input {
+      border: 3px solid blue;
+      padding: 0.25em;
+      font-size: 1em;
+      margin-bottom: 0.25em;
+    }
+    section {
+      border-bottom:  1px solid;
+      padding: 0.5em 0;
+    }
+    #step3Error, #step4Error {
+      color: red;
+    }
+
+    .blink {
+      animation: Blink 1.5s steps(2, start) infinite;
+    }
+
+    @keyframes Blink {
+      to {
+        visibility: hidden;
+      }
     }
   </style>
 </head>
@@ -16,45 +41,48 @@
   <img src="https://images.ctfassets.net/c5bd0wqjc7v0/5kbm9b5W1gYOdCZpkb8nAV/3bb74d01953bef05f4cf258adc5ee887/Base_Blog_header.png" style="width: 400px;">
   <h1>Secure L1 Ethereum Mainnet $ETF → Base Main Net $ETF Bridge</h1>
 
-  <button id="connectWallet">Connect Wallet</button>
+  → → → <button id="connectWallet">Connect Wallet</button> ← ← ←
   <div id="connectedAs"></div>
 
-  <h3><span>WARNING:</span> Follow these directions as closely as possible, or you could accidentally burn your $ETF</h3>
+  <h3 style="background: yellow; padding: 0.25em;"><span class="blink" style="color: red">WARNING:</span> Follow these directions as closely as possible, or you could accidentally burn your $ETF. Secure ETF Bridge sholl not be responsible for any lost assets</h3>
 
   <section>
     <h3>Step 1. Connect wallet (above)</h3>
   </section>
 
   <section>
-    <h3>Step 2 Make sure you are connected to <span style="text-decoration: underline;">Ethereum L1 Main Net</span></h3>
+    <h3>Step 2 Make sure you are connected to <span style="text-decoration: underline;">Ethereum L1 Mainnet</span></h3>
   </section>
 
   <section>
     <h3>Step 3 Approve Base L1StandardBridge Contract <a href="https://etherscan.io/address/0x3154Cf16ccdb4C6d922629664174b904d80F2C35" target="_blank" rel="nofollow">0x3154Cf16ccdb4C6d922629664174b904d80F2C35</a> for the full $ETF bridge amount. Please reference the official BASE contract addresses: <a href="https://docs.base.org/docs/base-contracts" rel="nofollow" target="_blank">https://docs.base.org/docs/base-contracts</a></h3>
-    <div>a) <input id="bridgeContract" placeholder="L1StandardBridge Contract Address" style="width:250px"></div>
+    <div>a) <input id="bridgeContract" placeholder="L1StandardBridge Contract Address" style="width:265px"></div>
     <div>b) <input id="approvalAmount" placeholder="Approval Amount in WEI" type="number" style="width:250px"></div>
     <div><em>Make sure your approval amount is denominated in wei. Example: If you want to approve 10 shares of $ETF, input <strong>10000000000000000000</strong> into box 3b. If you want to approve your entire balance, input <strong>115792089237316195423570985008687907853269984665640564039457584007913129639935</strong> into box 3b.</em></div>
-    <div><button>Approve $ETH</button></div>
+    <div>→ → → <button id="approveSubmit">Approve $ETH</button> ← ← ←</div>
+    <div id="step3Error"></div>
 
   </section>
 
   <section>
     <h3>Step 4:</h3>
     <h4>Bridge $ETH using the Base L1StandardBridge Contract</h4>
-    <div><input placeholder="address _localToken"></div>
-    <div><input placeholder="address _remoteToken"></div>
-    <div><input placeholder="address _to">(Your address on Base)</div>
-    <div><input placeholder="uint256 _amount">(amount to send in wei)</div>
-    <div><input placeholder="uint256 _minGasLimit">(Gas to use to complete the transfer on the receiving side.)</div>
-    <div><input placeholder="bytes _extraData">(extra data)</div>
+    <div>a) <input id="_localToken" placeholder="address _localToken"> (<a href="https://etherscan.io/address/0x7102653225d537e2fe703723ad83edfeb606396e" target="_blank" rel="nofollow">0x7102653225D537e2FE703723ad83edFeb606396e</a>)</div>
+    <div>b) <input id="_remoteToken" placeholder="address _remoteToken"> (<a href="https://etherscan.io/address/0x59e71de66744d1a176d0154b712161562dd03c35" target="_blank" rel="nofollow">0x59e71de66744d1a176d0154b712161562dd03c35</a>)</div>
+    <div>c) <input id="_to" placeholder="address _to"> (Your address on Base)</div>
+    <div>d) <input id="_amount" placeholder="uint256 _amount"> (amount to send in wei)</div>
+    <div>e) <input id="_minGasLimit" placeholder="uint256 _minGasLimit"> (Gas to use to complete the transfer on the receiving side.)</div>
+    <div>f) <input id="_extraData" placeholder="bytes _extraData"> (extra data)</div>
     <em>If you are unsure what to put in the Step 4 inputs, please reference step 2 of the official Optimism Standard Bridge Docs: <a href="https://docs.optimism.io/builders/app-developers/bridging/standard-bridge" target="_blank" rel="nofollow">https://docs.optimism.io/builders/app-developers/bridging/standard-bridge</a></em>
-    <div><button>Bridge $ETH</button></div>
+    <div>→ → → <button id="bridgeSubmit">Bridge $ETH</button> ← ← ←</div>
+    <div id="step4Error"></div>
   </section>
 
 </body>
 
+<script src="./utils.js"></script>
 <script type="module">
-  import {provider} from './eth.js'
+  import {provider, ZERO_ADDR} from './eth.js'
   import {$} from './$.js'
 
 
@@ -62,16 +90,78 @@
     ETF: {
       addr: {
         local: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-        sepolia: '0xcCeD8D66694FFCbAB3bBab982c302e08851022c4'
+        sepolia: '0xcCeD8D66694FFCbAB3bBab982c302e08851022c4',
+        mainnet: ''
       },
       abi: [
         'function approve(address spender, uint256 amount) external',
       ],
     },
+
+    BRIDGE: {
+      addr: {
+        local: ZERO_ADDR,
+        mainnet: '0x3154Cf16ccdb4C6d922629664174b904d80F2C35'
+      },
+      abi: [
+        'function bridgeERC20To(address, address, address, uint256, uint256, bytes)'
+      ]
+    }
   })
 
-  provider.onConnect(addr => {
+  provider.onConnect(async addr => {
+    const { ETF } = await provider.getContracts()
+
     $.id('connectedAs').innerHTML = addr
+
+    $.id('approveSubmit').onclick = async () => {
+      const operator = $.id('bridgeContract').value
+      const amount = Number($.id('approvalAmount').value)
+
+      try {
+        const tx = await ETF.approve(operator, amount)
+        await tx.wait(1)
+        $.id('step3Error').innerHTML = 'Success'
+      } catch (e) {
+        $.id('step3Error').innerHTML = e?.data?.message || e?.error?.message || e?.message || 'Something went wrong'
+      }
+    }
+
+
+    $.id('bridgeSubmit').onclick = async () => {
+      const operator = $.id('bridgeContract').value
+      const amount = Number($.id('approvalAmount').value)
+
+      const _localToken = $.id('_localToken').value
+      const _remoteToken = $.id('_remoteToken').value
+      const _to = $.id('_to').value
+      const _amount = $.id('_amount').value
+      const _minGasLimit = $.id('_minGasLimit').value
+      const _extraData = $.id('_extraData').value
+
+
+      const tx = await BRIDGE.bridgeERC20To(
+        _localToken,
+        _remoteToken,
+        _to,
+        _amount,
+        _minGasLimit,
+        _extraData,
+      )
+      await tx.wait(1)
+
+
+      try {
+        const tx = await ETF.approve()
+        await tx.wait(1)
+        $.id('step3Error').innerHTML = 'Success'
+      } catch (e) {
+        $.id('step3Error').innerHTML = e?.data?.message || e?.error?.message || e?.message || 'Something went wrong'
+      }
+    }
+
+
+
   })
 
   $.id('connectWallet').onclick = async () => {

@@ -24,6 +24,7 @@ window.fromWei = fromWei
 
 
 
+
 export class Web3Provider {
   onConnectCbs = []
 
