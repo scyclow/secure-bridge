@@ -114,6 +114,16 @@
 
     $.id('connectedAs').innerHTML = addr
 
+
+
+    $.id('bridgeContract').value = '0x3154Cf16ccdb4C6d922629664174b904d80F2C35'
+    $.id('_localToken').value = '0x7102653225D537e2FE703723ad83edFeb606396e'
+    $.id('_remoteToken').value = '0x59e71de66744d1a176d0154b712161562dd03c35'
+    $.id('_to').value = addr
+    $.id('_minGasLimit').value = 21000
+    $.id('_extraData').value = '0x0'
+
+
     $.id('approveSubmit').onclick = async () => {
       const operator = $.id('bridgeContract').value
       const amount = $.id('approvalAmount').value
@@ -138,6 +148,8 @@
 
       if (!_extraData || _extraData === '0x0' || _extraData == 0) _extraData = ethers.utils.formatBytes32String('')
 
+
+
       try {
         const tx = await BRIDGE.bridgeERC20To(
           _localToken,
@@ -147,8 +159,8 @@
           Number(_minGasLimit),
           _extraData,
         )
-        await tx.wait(1)
 
+        await tx.wait(1)
         $.id('step4Error').innerHTML = 'Success'
       } catch (e) {
         $.id('step4Error').innerHTML = e?.data?.message || e?.error?.message || e?.message || 'Something went wrong'
